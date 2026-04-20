@@ -1,0 +1,104 @@
+// Motor Driver Pins (L298N)
+const int IN1 = 9;
+const int IN2 = 8;
+const int IN3 = 7;
+const int IN4 = 6;
+const int ENA = 10; // Speed Control Left
+const int ENB = 5;  // Speed Control Right
+
+// IR Sensor Array Pins (Digital)
+const int S1 = A0; // Extreme Left
+const int S2 = A1; // Left
+const int S3 = A2; // Center
+const int S4 = A3; // Right
+const int S5 = A4; // Extreme Right
+
+// Speed Settings
+int baseSpeed = 150; 
+int turnSpeed = 180;
+
+void setup() {
+  // Motor Pins
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+
+  // Sensor Pins
+  pinMode(S1, INPUT);
+  pinMode(S2, INPUT);
+  pinMode(S3, INPUT);
+  pinMode(S4, INPUT);
+  pinMode(S5, INPUT);
+}
+
+void loop() {
+  // Reading Sensors (Black line = HIGH for most digital IR arrays)
+  int val1 = digitalRead(S1);
+  int val2 = digitalRead(S2);
+  int val3 = digitalRead(S3);
+  int val4 = digitalRead(S4);
+  int val5 = digitalRead(S5);
+
+  // 1. Forward: Center sensor is on black line
+  if (val3 == HIGH && val1 == LOW && val5 == LOW) {
+    moveForward();
+  }
+  // 2. Slight Right: Right sensor detects line
+  else if (val4 == HIGH || (val3 == HIGH && val4 == HIGH)) {
+    turnRight();
+  }
+  // 3. Sharp Right: Extreme Right sensor detects line
+  else if (val5 == HIGH) {
+    sharpRight();
+  }
+  // 4. Slight Left: Left sensor detects line
+  else if (val2 == HIGH || (val3 == HIGH && val2 == HIGH)) {
+    turnLeft();
+  }
+  // 5. Sharp Left: Extreme Left sensor detects line
+  else if (val1 == HIGH) {
+    sharpLeft();
+  }
+  // 6. Stop or Search: If no line is detected
+  else {
+    stopMotors();
+  }
+}
+
+// Functions for movement
+void moveForward() {
+  digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
+  analogWrite(ENA, baseSpeed); analogWrite(ENB, baseSpeed);
+}
+
+void turnRight() {
+  digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, turnSpeed); analogWrite(ENB, turnSpeed);
+}
+
+void sharpRight() {
+  digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, 200); analogWrite(ENB, 200);
+}
+
+void turnLeft() {
+  digitalWrite(IN1, LOW);  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
+  analogWrite(ENA, turnSpeed); analogWrite(ENB, turnSpeed);
+}
+
+void sharpLeft() {
+  digitalWrite(IN1, LOW);  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
+  analogWrite(ENA, 200); analogWrite(ENB, 200);
+}
+
+void stopMotors() {
+  analogWrite(ENA, 0); analogWrite(ENB, 0);
+}
